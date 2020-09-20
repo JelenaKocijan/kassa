@@ -67,7 +67,7 @@ def get_quantity():
     except ValueError:
         print("incorrect number ")
 
-        get_quantity()
+        return get_quantity()
 
 
 def stockroom_balance(item_id, item_quantity):
