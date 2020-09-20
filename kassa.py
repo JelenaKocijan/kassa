@@ -1,5 +1,7 @@
 import csv
-
+import sys
+arguments=sys.argv
+a=2
 
 def open_csv(csv_path):
     with open(csv_path)as csvfile:
@@ -112,7 +114,7 @@ def positive_negative_response(question):
             return False
 
 
-body, header = open_csv(csv_path="/Users/kocijan/Downloads/magacin.csv")
+body, header = open_csv(csv_path=arguments[1])
 stockroom = convertor_stockroom_in_dictionary(header, body)
 
 response = "coco_shanel"
