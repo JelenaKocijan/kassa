@@ -1,29 +1,7 @@
-import csv
-import sys
-arguments=sys.argv
-a=2
+import queries
 
-def open_csv(csv_path):
-    with open(csv_path)as csvfile:
-        objects = csv.reader(csvfile, delimiter=';')
-        objects = list(objects)
-        header = objects[0]
-        body = objects[1:]
-
-        return body, header
-
-
-def convertor_stockroom_in_dictionary(header, body):
-    stockroom_lists = []
-
-    for element in body:
-        pairs = {}
-
-        for i, key in enumerate(header):
-            value = element[i]
-            pairs[key] = value
-        stockroom_lists.append(pairs)
-    return stockroom_lists
+conn = queries.get_connection()
+products_list = queries.all_products(conn)
 
 
 def menu_generator(stockroom_lists):
@@ -33,22 +11,25 @@ def menu_generator(stockroom_lists):
         fruit = element.get("naziv")
         menu_list.append(f"{number}:{fruit}")
 
-    print(", ".join(menu_list))
+    return ", ".join(menu_list)
 
 
-def get_item_id(stockroom_lists):
+def get_item_id(products_list):
+    if not isinstance(products_list, list) and not isinstance(products_list, tuple):
+        raise Exception("product_list have to be Type List")
+
     id_list = []
-    for element in stockroom_lists:
+    for element in products_list:
         number = element.get("id")
         id_list.append(number)
+
     return id_list
 
 
-
-def check_is_it_id_valid(id_list):
+def check_is_id_valid(id_list):
     id_input = -12
     while id_input not in id_list:
-        id_input = input("Please enter product id:")
+        id_input = int(input("Please enter product id:"))
 
     else:
         id_input = int(id_input)
@@ -70,22 +51,22 @@ def get_quantity():
         return get_quantity()
 
 
-def stockroom_balance(item_id, item_quantity):
-    for element in stockroom:
+def stockroom_balance(products_list, item_id, item_quantity):
+    for element in products_list:
         id = int(element.get("id"))
-        in_stock = int(element.get("stanje"))
+        in_stock = int(element.get("kolicina"))
 
         if id == item_id:
             if in_stock >= item_quantity:
                 rest = in_stock - item_quantity
-                element["stanje"] = rest
+                element["kolicina"] = rest
                 return item_quantity, element
             else:
                 print("The quantity of the product on stock is: ", in_stock)
 
                 response = positive_negative_response(question="Do you want this amount of product?")
                 if response:
-                    element["stanje"] = 0
+                    element["kolicina"] = 0
                     return in_stock, element
                 else:
 
@@ -93,13 +74,10 @@ def stockroom_balance(item_id, item_quantity):
 
 
 def price_calculation(in_stock, element):
-    product_price = float(element.get("jedinicna_cena"))
-    total_product_price = round((in_stock * product_price),2)
-    return total_product_price
-
-
-def gate_question ():
-    question = input("Do you like to continue shopping?")
+    product_price = float(element.get("cena"))
+    total_product_price = in_stock * product_price
+    novi_total_price = round(total_product_price, 2)
+    return novi_total_price
 
 
 def positive_negative_response(question):
@@ -114,25 +92,21 @@ def positive_negative_response(question):
             return False
 
 
-body, header = open_csv(csv_path=arguments[1])
-stockroom = convertor_stockroom_in_dictionary(header, body)
-
 response = "coco_shanel"
 total_product_price = 0
 while True:
 
-    menu_generator(stockroom)
-    id_list = get_item_id(stockroom)
-    entered_id = check_is_it_id_valid(id_list)
+    print(menu_generator(products_list))
+    id_list = get_item_id(products_list)
+    entered_id = check_is_id_valid(id_list)
     item_quantity = get_quantity()
-    in_stock, element = stockroom_balance(entered_id, item_quantity)
+    in_stock, element = stockroom_balance(products_list, entered_id, item_quantity)
 
     if in_stock and element:
         total_product_price += price_calculation(in_stock, element)
     negative_response = positive_negative_response(question="Would you like something else?")
     if not negative_response:
         break
-print("Your bill is:", total_product_price,"euros")
+print("Your bill is:", total_product_price, "euros")
 print("Please take your receipt! ")
 print("        Thank you!")
-a=2
